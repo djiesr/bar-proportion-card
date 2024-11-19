@@ -19,6 +19,7 @@ class BarProportionCard extends HTMLElement {
     const values = this.config.entities.map(entity => {
       const state = this._hass.states[entity.entity];
       if (!state) {
+        console.warn(`Entity ${entity.entity} not found`);
         return {
           name: entity.name || entity.entity,
           value: 0,
@@ -35,14 +36,14 @@ class BarProportionCard extends HTMLElement {
     const total = values.reduce((sum, item) => sum + item.value, 0);
     
     this.content.innerHTML = `
-      <div class="w-full p-4 bg-white rounded-lg shadow">
-        ${this.config.title ? `<h2 class="text-lg font-medium mb-4">${this.config.title}</h2>` : ''}
+      <div class="card-content">
+        ${this.config.title ? `<h2 class="card-header">${this.config.title}</h2>` : ''}
         
-        <div class="w-full h-8 flex rounded-lg overflow-hidden mb-4 bg-gray-100">
+        <div class="bar-container">
           ${values.map(item => `
-            <div class="${item.color} h-full transition-all duration-500 relative group" 
+            <div class="bar-section ${item.color}" 
                  style="width: ${(item.value / total * 100)}%; min-width: ${item.value > 0 ? '1%' : '0'}">
-              <div class="absolute opacity-0 group-hover:opacity-100 bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap z-10">
+              <div class="tooltip">
                 ${item.name}: ${item.value} (${Math.round((item.value / total) * 100)}%)
               </div>
             </div>
@@ -50,11 +51,11 @@ class BarProportionCard extends HTMLElement {
         </div>
 
         ${this.config.show_legend !== false ? `
-          <div class="flex flex-wrap gap-4">
+          <div class="legend">
             ${values.map(item => `
-              <div class="flex items-center gap-2">
-                <div class="${item.color} w-4 h-4 rounded"></div>
-                <span class="text-sm">
+              <div class="legend-item">
+                <div class="legend-color ${item.color}"></div>
+                <span class="legend-label">
                   ${item.name} (${Math.round((item.value / total) * 100)}%)
                 </span>
               </div>
@@ -63,6 +64,18 @@ class BarProportionCard extends HTMLElement {
         ` : ''}
       </div>
     `;
+  }
+
+  getCardSize() {
+    return 3;
+  }
+
+  static getStubConfig() {
+    return {
+      type: "custom:bar-proportion-card",
+      title: "Bar Proportion",
+      entities: []
+    };
   }
 }
 
