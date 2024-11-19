@@ -1,7 +1,7 @@
 {
-  "name": "astroweather-card",
-  "version": "0.70.0",
-  "description": "This is a custom weather card for my custom [Home Assistant](https://www.home-assistant.io/) integration [AstroWeather](https://github.com/mawinkler/astroweather). It requires an AstroWeather version `0.20.0+`.",
+  "name": "bar-proportion-card",
+  "version": "1.0.0",
+  "description": "A venir",
   "keywords": [
     "home-assistant",
     "homeassistant",
@@ -9,18 +9,16 @@
     "automation",
     "lovelace",
     "custom-cards",
-    "astroweather"
+    "bar proportion"
   ],
-  "module": "dist/astroweather-card.js",
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:mawinkler/astroweather-card.git"
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "watch": "webpack --watch --config webpack.config.js"
   },
-  "author": "Markus Winkler",
-  "license": "MIT",
-  "dependencies": {
-    "chart.js": "3.7.1",
-    "chartjs-plugin-datalabels": "^2.0.0",
-    "lit": "^2.2.0"
+  "devDependencies": {
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "css-loader": "^6.8.1",
+    "style-loader": "^3.3.3"
   }
 }
