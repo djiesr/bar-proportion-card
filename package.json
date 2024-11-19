@@ -1,0 +1,16 @@
+{
+  "name": "bar-proportion-card",
+  "version": "1.0.0",
+  "description": "A proportion bar card for Home Assistant",
+  "main": "dist/bar-proportion-card.js",
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "watch": "webpack --watch --config webpack.config.js"
+  },
+  "author": "votre-nom",
+  "license": "MIT",
+  "dependencies": {
+    "lit-element": "^2.0.0",
+    "custom-card-helpers": "^1.0.0"
+  }
+}
