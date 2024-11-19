@@ -1,3 +1,65 @@
+// Ajoutez ceci au début du fichier
+const style = document.createElement('style');
+style.textContent = `
+  .card-content {
+    padding: 16px;
+  }
+  .card-header {
+    font-size: 1.2em;
+    margin-bottom: 16px;
+  }
+  .bar-container {
+    width: 100%;
+    height: 32px;
+    display: flex;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f3f4f6;
+    margin-bottom: 16px;
+  }
+  .bar-section {
+    height: 100%;
+    transition: width 0.5s;
+    position: relative;
+  }
+  .tooltip {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f2937;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 10;
+  }
+  .bar-section:hover .tooltip {
+    display: block;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+  }
+  .legend-label {
+    font-size: 14px;
+  }
+`;
+document.head.appendChild(style);
+
 class BarProportionCard extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
