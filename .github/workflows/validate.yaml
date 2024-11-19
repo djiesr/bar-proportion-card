@@ -1,31 +1,15 @@
-name: Build
+name: Validate
 
 on:
   push:
-    branches:
-      - main
+  pull_request:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  validate:
+    runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v2
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - uses: "actions/checkout@v3"
+      - name: HACS validation
+        uses: "hacs/action@main"
         with:
-          node-version: '16'
-          
-      - name: Install dependencies
-        run: npm install
-        
-      - name: Build
-        run: npm run build
-        
-      - name: Commit dist
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add dist
-          git commit -m "Build dist" || echo "No changes to commit"
-          git push
+          category: "plugin"
