@@ -21,4 +21,9 @@
     "css-loader": "^6.8.1",
     "style-loader": "^3.3.3"
   }
+  "module": "dist/bar-proportion-card.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:djiesr/bar-proportion-card.git"
+  },
 }
