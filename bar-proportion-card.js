@@ -1,64 +1,20 @@
-const style = document.createElement('style');
-style.textContent = `
-  .card-content {
-    padding: 16px;
-  }
-  .card-header {
-    font-size: 1.5em;
-    margin-bottom: 24px;
-    color: var(--primary-text-color);
-  }
-  .bar-container {
-    width: 100%;
-    height: 24px;
-    display: flex;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 24px;
-  }
-  .bar-section {
-    height: 100%;
-    transition: width 0.5s;
-    position: relative;
-  }
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    margin-top: 16px;
-  }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .legend-color {
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
-  }
-  .legend-label {
-    font-size: 0.9em;
-    color: var(--primary-text-color);
-  }
-  
-  /* Couleurs spécifiques */
-  .deep-sleep {
-    background-color: #1a4bff;
-  }
-  .light-sleep {
-    background-color: #63a4ff;
-  }
-  .rem-sleep {
-    background-color: #3978ff;
-  }
-  .awake {
-    background-color: #9e9e9e;
-  }
-`;
-
 class BarProportionCard extends HTMLElement {
-  // ... autres méthodes ...
+  // Ajouter cette méthode setConfig
+  setConfig(config) {
+    if (!config.entities || !Array.isArray(config.entities)) {
+      throw new Error('Please define entities');
+    }
+    this.config = config;
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    if (!this.content) {
+      this.content = document.createElement('div');
+      this.appendChild(this.content);
+    }
+    this.updateCard();
+  }
 
   updateCard() {
     const values = this.config.entities.map(entity => {
