@@ -1,48 +1,31 @@
-// Ajoutez ceci au début du fichier
 const style = document.createElement('style');
 style.textContent = `
   .card-content {
     padding: 16px;
   }
   .card-header {
-    font-size: 1.2em;
-    margin-bottom: 16px;
+    font-size: 1.5em;
+    margin-bottom: 24px;
+    color: var(--primary-text-color);
   }
   .bar-container {
     width: 100%;
-    height: 32px;
+    height: 24px;
     display: flex;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    background: #f3f4f6;
-    margin-bottom: 16px;
+    margin-bottom: 24px;
   }
   .bar-section {
     height: 100%;
     transition: width 0.5s;
     position: relative;
   }
-  .tooltip {
-    display: none;
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #1f2937;
-    color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    white-space: nowrap;
-    z-index: 10;
-  }
-  .bar-section:hover .tooltip {
-    display: block;
-  }
   .legend {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 20px;
+    margin-top: 16px;
   }
   .legend-item {
     display: flex;
@@ -50,12 +33,27 @@ style.textContent = `
     gap: 8px;
   }
   .legend-color {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
   }
   .legend-label {
-    font-size: 14px;
+    font-size: 0.9em;
+    color: var(--primary-text-color);
+  }
+  
+  /* Couleurs spécifiques */
+  .deep-sleep {
+    background-color: #1a4bff;
+  }
+  .light-sleep {
+    background-color: #63a4ff;
+  }
+  .rem-sleep {
+    background-color: #3978ff;
+  }
+  .awake {
+    background-color: #9e9e9e;
   }
 `;
 document.head.appendChild(style);
