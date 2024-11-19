@@ -2,7 +2,7 @@
 
 Une carte personnalisée pour Home Assistant qui affiche des proportions dans une barre.
 
-![Example](https://raw.githubusercontent.com/djiesr/bar-proportion-card/main/example.png)
+![Example](https://raw.githubusercontent.com/djiesr/bar-proportion-card/main/image.png)
 
 ## Installation
 
