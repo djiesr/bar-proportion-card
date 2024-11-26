@@ -1,5 +1,4 @@
 class BarProportionCard extends HTMLElement {
-  // Ajouter cette méthode setConfig
   setConfig(config) {
     if (!config.entities || !Array.isArray(config.entities)) {
       throw new Error('Please define entities');
@@ -24,13 +23,13 @@ class BarProportionCard extends HTMLElement {
         return {
           name: entity.name || entity.entity,
           value: 0,
-          color: entity.color || 'deep-sleep'
+          color: entity.color || '#1a4bff' // couleur par défaut si non spécifiée
         };
       }
       return {
         name: entity.name || state.attributes.friendly_name || entity.entity,
         value: parseFloat(state.state) || 0,
-        color: entity.color || 'deep-sleep'
+        color: entity.color || '#1a4bff'
       };
     });
 
@@ -51,10 +50,6 @@ class BarProportionCard extends HTMLElement {
           height: 100%;
           transition: width 0.5s;
         }
-        .deep-sleep { background-color: #1a4bff; }
-        .light-sleep { background-color: #63a4ff; }
-        .rem-sleep { background-color: #3978ff; }
-        .awake { background-color: #9e9e9e; }
         .legend {
           display: flex;
           flex-wrap: wrap;
@@ -78,8 +73,8 @@ class BarProportionCard extends HTMLElement {
         
         <div class="bar-container">
           ${values.map(item => `
-            <div class="bar-section ${item.color}" 
-                 style="width: ${(item.value / total * 100)}%;">
+            <div class="bar-section" 
+                 style="width: ${(item.value / total * 100)}%; background-color: ${item.color};">
             </div>
           `).join('')}
         </div>
@@ -87,7 +82,7 @@ class BarProportionCard extends HTMLElement {
         <div class="legend">
           ${values.map(item => `
             <div class="legend-item">
-              <div class="legend-color ${item.color}"></div>
+              <div class="legend-color" style="background-color: ${item.color};"></div>
               <span>${item.name} (${Math.round((item.value / total) * 100)}%)</span>
             </div>
           `).join('')}
