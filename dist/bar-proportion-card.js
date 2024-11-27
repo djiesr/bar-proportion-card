@@ -3,12 +3,11 @@ class BarProportionCard extends HTMLElement {
     if (!config.entities || !Array.isArray(config.entities)) {
       throw new Error('Please define entities');
     }
-    // Options par défaut
     this.config = {
-      display_mode: 'percentage', // 'percentage' ou 'value'
-      unit: '',                   // unité pour le mode 'value'
-      decimals: 0,                // nombre de décimales
-      ...config                   // fusionner avec les options fournies
+      display_mode: 'percentage',
+      unit: '',
+      decimals: 0,
+      ...config
     };
   }
 
@@ -21,7 +20,6 @@ class BarProportionCard extends HTMLElement {
     this.updateCard();
   }
 
-  // Fonction pour formater l'affichage selon le mode choisi
   formatDisplay(value, total) {
     if (this.config.display_mode === 'percentage') {
       return `${(value / total * 100).toFixed(this.config.decimals)}%`;
@@ -38,53 +36,66 @@ class BarProportionCard extends HTMLElement {
         return {
           name: entity.name || entity.entity,
           value: 0,
-          color: entity.color || '#1a4bff'
+          color: entity.color || 'var(--primary-color)'
         };
       }
       return {
         name: entity.name || state.attributes.friendly_name || entity.entity,
         value: parseFloat(state.state) || 0,
-        color: entity.color || '#1a4bff'
+        color: entity.color || 'var(--primary-color)'
       };
     });
 
     const total = values.reduce((sum, item) => sum + item.value, 0);
     
     this.content.innerHTML = `
-      <style>
-        .bar-container {
-          width: 100%;
-          height: 24px;
-          display: flex;
-          border-radius: 12px;
-          overflow: hidden;
-          background: #f0f0f0;
-          margin: 16px 0;
-        }
-        .bar-section {
-          height: 100%;
-          transition: width 0.5s;
-        }
-        .legend {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 16px;
-          margin-top: 16px;
-        }
-        .legend-item {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        .legend-color {
-          width: 12px;
-          height: 12px;
-          border-radius: 3px;
-        }
-      </style>
+      <ha-card>
+        <style>
+          .bar-container {
+            width: 100%;
+            height: 24px;
+            display: flex;
+            border-radius: var(--ha-card-border-radius, 12px);
+            overflow: hidden;
+            background: var(--secondary-background-color);
+            margin: 16px 0;
+          }
+          .bar-section {
+            height: 100%;
+            transition: width 0.5s;
+          }
+          .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 16px;
+            color: var(--primary-text-color);
+          }
+          .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: var(--ha-card-border-radius, 3px);
+          }
+          ha-card {
+            background: var(--card-background-color, var(--ha-card-background));
+            border-radius: var(--ha-card-border-radius, 12px);
+            box-shadow: var(--ha-card-box-shadow, none);
+            padding: 16px;
+          }
+          .card-header {
+            color: var(--primary-text-color);
+            font-size: var(--ha-card-header-font-size, 1.5em);
+            font-weight: var(--ha-card-header-font-weight, 500);
+            margin-bottom: 16px;
+          }
+        </style>
 
-      <div style="padding: 16px;">
-        ${this.config.title ? `<h2 style="font-size: 1.5em; margin-bottom: 16px;">${this.config.title}</h2>` : ''}
+        ${this.config.title ? `<h2 class="card-header">${this.config.title}</h2>` : ''}
         
         <div class="bar-container">
           ${values.map(item => `
@@ -102,7 +113,7 @@ class BarProportionCard extends HTMLElement {
             </div>
           `).join('')}
         </div>
-      </div>
+      </ha-card>
     `;
   }
 }
