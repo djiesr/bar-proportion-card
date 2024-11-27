@@ -20,11 +20,47 @@ Une carte personnalisée pour Home Assistant qui affiche des proportions dans un
 3. Ajouter la ressource dans Lovelace
 
 ## Configuration
+Vous pouvez configurer la carte de plusieurs façons :
 
-```yaml
-type: custom:bar-proportion-card
-title: Sleep Phases
+Pour afficher des pourcentages (par défaut) :
+
+'''yaml
+title: 'Phases de sommeil'
+display_mode: 'percentage'
+decimals: 1  # Pour avoir une décimale
 entities:
   - entity: sensor.deep_sleep
-    name: Deep Sleep
-    color: bg-blue-700
+    name: 'Sommeil profond'
+    color: '#1a4bff'
+  - entity: sensor.light_sleep
+    name: 'Sommeil léger'
+    color: '#63a4ff'
+
+Pour afficher les minutes :
+
+'''yaml
+title: 'Phases de sommeil'
+display_mode: 'value'
+unit: ' min'
+entities:
+  - entity: sensor.deep_sleep
+    name: 'Sommeil profond'
+    color: '#1a4bff'
+  - entity: sensor.light_sleep
+    name: 'Sommeil léger'
+    color: '#63a4ff'
+
+Pour d'autres types de valeurs (par exemple des kWh) :
+
+'''yaml
+title: 'Consommation électrique'
+display_mode: 'value'
+unit: ' kWh'
+decimals: 2
+entities:
+  - entity: sensor.kitchen_consumption
+    name: 'Cuisine'
+    color: '#ff0000'
+  - entity: sensor.living_room_consumption
+    name: 'Salon'
+    color: '#00ff00'
