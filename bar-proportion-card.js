@@ -3,7 +3,13 @@ class BarProportionCard extends HTMLElement {
     if (!config.entities || !Array.isArray(config.entities)) {
       throw new Error('Please define entities');
     }
-    this.config = config;
+    // Options par défaut
+    this.config = {
+      display_mode: 'percentage', // 'percentage' ou 'value'
+      unit: '',                   // unité pour le mode 'value'
+      decimals: 0,                // nombre de décimales
+      ...config                   // fusionner avec les options fournies
+    };
   }
 
   set hass(hass) {
@@ -15,6 +21,15 @@ class BarProportionCard extends HTMLElement {
     this.updateCard();
   }
 
+  // Fonction pour formater l'affichage selon le mode choisi
+  formatDisplay(value, total) {
+    if (this.config.display_mode === 'percentage') {
+      return `${(value / total * 100).toFixed(this.config.decimals)}%`;
+    } else {
+      return `${value.toFixed(this.config.decimals)}${this.config.unit}`;
+    }
+  }
+
   updateCard() {
     const values = this.config.entities.map(entity => {
       const state = this._hass.states[entity.entity];
@@ -23,7 +38,7 @@ class BarProportionCard extends HTMLElement {
         return {
           name: entity.name || entity.entity,
           value: 0,
-          color: entity.color || '#1a4bff' // couleur par défaut si non spécifiée
+          color: entity.color || '#1a4bff'
         };
       }
       return {
@@ -83,7 +98,7 @@ class BarProportionCard extends HTMLElement {
           ${values.map(item => `
             <div class="legend-item">
               <div class="legend-color" style="background-color: ${item.color};"></div>
-              <span>${item.name} (${Math.round((item.value / total) * 100)}%)</span>
+              <span>${item.name} (${this.formatDisplay(item.value, total)})</span>
             </div>
           `).join('')}
         </div>
