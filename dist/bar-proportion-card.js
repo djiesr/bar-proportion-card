@@ -15,6 +15,7 @@ class BarProportionCard extends HTMLElement {
     this._hass = hass;
     if (!this.content) {
       this.content = document.createElement('div');
+      this.content.className = 'card-content';
       this.appendChild(this.content);
     }
     this.updateCard();
@@ -51,25 +52,48 @@ class BarProportionCard extends HTMLElement {
     this.content.innerHTML = `
       <ha-card>
         <style>
+          :host {
+            display: block;
+            --ha-card-background: var(--card-background-color, white);
+            --ha-card-border-radius: var(--ha-card-border-radius, 12px);
+            --ha-card-box-shadow: var(--ha-card-box-shadow, none);
+          }
+          ha-card {
+            overflow: hidden;
+            background: var(--ha-card-background);
+            border-radius: var(--ha-card-border-radius);
+            box-shadow: var(--ha-card-box-shadow);
+            padding: 16px;
+          }
+          .card-header {
+            color: var(--primary-text-color);
+            font-size: var(--ha-card-header-font-size, 24px);
+            font-weight: var(--ha-card-header-font-weight, normal);
+            letter-spacing: -0.012em;
+            line-height: 32px;
+            padding: 4px 0 12px;
+            display: block;
+          }
           .bar-container {
             width: 100%;
             height: 24px;
             display: flex;
-            border-radius: var(--ha-card-border-radius, 12px);
+            border-radius: 12px;
             overflow: hidden;
             background: var(--secondary-background-color);
-            margin: 16px 0;
+            margin: 8px 0;
           }
           .bar-section {
             height: 100%;
-            transition: width 0.5s;
+            transition: width 0.5s ease-in-out;
           }
           .legend {
             display: flex;
             flex-wrap: wrap;
             gap: 16px;
-            margin-top: 16px;
+            margin-top: 12px;
             color: var(--primary-text-color);
+            font-size: 14px;
           }
           .legend-item {
             display: flex;
@@ -79,23 +103,11 @@ class BarProportionCard extends HTMLElement {
           .legend-color {
             width: 12px;
             height: 12px;
-            border-radius: var(--ha-card-border-radius, 3px);
-          }
-          ha-card {
-            background: var(--card-background-color, var(--ha-card-background));
-            border-radius: var(--ha-card-border-radius, 12px);
-            box-shadow: var(--ha-card-box-shadow, none);
-            padding: 16px;
-          }
-          .card-header {
-            color: var(--primary-text-color);
-            font-size: var(--ha-card-header-font-size, 1.5em);
-            font-weight: var(--ha-card-header-font-weight, 500);
-            margin-bottom: 16px;
+            border-radius: 3px;
           }
         </style>
 
-        ${this.config.title ? `<h2 class="card-header">${this.config.title}</h2>` : ''}
+        ${this.config.title ? `<div class="card-header">${this.config.title}</div>` : ''}
         
         <div class="bar-container">
           ${values.map(item => `
