@@ -1,5 +1,6 @@
 import styles from './bar-proportion-styles.js';
 import { formatDisplay, processEntityData } from './bar-proportion-utils.js';
+import './bar-proportion-editor.js';
 
 class BarProportionCard extends HTMLElement {
   static getConfigElement() {
