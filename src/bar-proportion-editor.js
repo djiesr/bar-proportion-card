@@ -1,4 +1,34 @@
 class BarProportionCardEditor extends HTMLElement {
+  constructor() {
+    super();
+    this.shadowRoot || this.attachShadow({ mode: 'open' });
+    console.log('Editor constructor called');
+  }
+
+  set hass(hass) {
+    console.log('Editor hass setter called', hass);
+    this._hass = hass;
+    this._buildForm();
+  }
+
+  setConfig(config) {
+    console.log('Editor setConfig called', config);
+    this._config = config;
+    this._buildForm();
+  }
+
+  firstUpdated() {
+    console.log('Editor firstUpdated called');
+    this._buildForm();
+  }
+
+  _buildForm() {
+    console.log('Editor _buildForm called');
+    if (!this._config) {
+      console.log('No config yet');
+      return;
+    }
+  }
   static styles = `
     .form-container {
       display: flex;
@@ -31,20 +61,9 @@ class BarProportionCardEditor extends HTMLElement {
       width: 100%;
     }
   `;
-  set hass(hass) {
-    this._hass = hass;
-    // Reconstruire le formulaire si nécessaire pour mettre à jour les entity-pickers
-    if (this.shadowRoot) {
-      this._buildForm();
-    }
-  }
 
   get hass() {
     return this._hass;
-  }
-  
-  setConfig(config) {
-    this._config = config;
   }
 
   get _title() {
@@ -66,15 +85,6 @@ class BarProportionCardEditor extends HTMLElement {
   get _unit() {
     return this._config.unit || '';
   }
-
-  firstUpdated() {
-    this._buildForm();
-  }
-
-  _buildForm() {
-    if (this.shadowRoot) {
-      this.shadowRoot.lastChild.remove();
-    }
 
     const helper = document.createElement('div');
     helper.innerHTML = `
