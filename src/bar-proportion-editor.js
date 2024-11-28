@@ -31,7 +31,18 @@ class BarProportionCardEditor extends HTMLElement {
       width: 100%;
     }
   `;
+  set hass(hass) {
+    this._hass = hass;
+    // Reconstruire le formulaire si nécessaire pour mettre à jour les entity-pickers
+    if (this.shadowRoot) {
+      this._buildForm();
+    }
+  }
 
+  get hass() {
+    return this._hass;
+  }
+  
   setConfig(config) {
     this._config = config;
   }
@@ -123,7 +134,6 @@ class BarProportionCardEditor extends HTMLElement {
 
     const root = this.attachShadow({ mode: 'open' });
     root.appendChild(helper.children[0]);
-    root.appendChild(helper.children[0]);
     this._initializeElements();
   }
 
@@ -145,7 +155,7 @@ class BarProportionCardEditor extends HTMLElement {
           id="entity-${index}"
           .value="${entity.entity}"
           .label="Entité ${index + 1}"
-          .hass="${this.hass}"
+          .hass="${this._hass}"
           allow-custom-entity
         ></ha-entity-picker>
         <ha-textfield
