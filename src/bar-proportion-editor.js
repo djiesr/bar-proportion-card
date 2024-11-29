@@ -153,8 +153,25 @@ class BarProportionCardEditor extends HTMLElement {
     });
   }
 
+  set hass(hass) {
+    console.log('Setting hass in editor');
+    this._hass = hass;
+    // On reconstruit le formulaire uniquement si la config existe déjà
+    if (this._config) {
+      this._buildForm();
+    }
+  }
+  
   _createEntityRow(entity, index) {
     return `
+      ${index === 0 ? `
+        <div class="entity-header" style="display: flex; gap: 8px; margin-bottom: 8px; color: var(--primary-text-color);">
+          <div style="flex-grow: 1; min-width: 200px;">Entité</div>
+          <div style="flex-grow: 1; min-width: 150px;">Nom personnalisé</div>
+          <div style="min-width: 120px;">Couleur</div>
+          <div style="width: 48px;"></div>
+        </div>
+      ` : ''}
       <div class="entity-row">
         <ha-entity-picker
           id="entity-${index}"
@@ -163,6 +180,7 @@ class BarProportionCardEditor extends HTMLElement {
           .label="Sélectionner une entité"
           .includeDomains=${['sensor', 'input_number', 'number']}
           allow-custom-entity
+          .localizeFunc=${this._hass?.localize}
           style="flex-grow: 1; min-width: 200px;"
         ></ha-entity-picker>
         <ha-textfield
@@ -237,14 +255,6 @@ class BarProportionCardEditor extends HTMLElement {
       detail: { config: newConfig }
     });
     this.dispatchEvent(event);
-  }
-  set hass(hass) {
-    console.log('Setting hass in editor');
-    this._hass = hass;
-    // On reconstruit le formulaire uniquement si la config existe déjà
-    if (this._config) {
-      this._buildForm();
-    }
   }
 }
 
