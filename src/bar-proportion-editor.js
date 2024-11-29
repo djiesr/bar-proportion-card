@@ -1,69 +1,49 @@
 class BarProportionCardEditor extends HTMLElement {
-  constructor() {
-    super();
-    this.shadowRoot || this.attachShadow({ mode: 'open' });
-    console.log('Editor constructor called');
+  static get styles() {
+    return `
+      .form-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .row {
+        padding: 8px 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .entities {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .entity-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .entity-row ha-icon {
+        cursor: pointer;
+        color: var(--primary-text-color);
+      }
+      mwc-button {
+        margin-top: 8px;
+      }
+      ha-textfield {
+        width: 100%;
+      }
+    `;
   }
 
-  set hass(hass) {
-    console.log('Editor hass setter called', hass);
-    this._hass = hass;
-    this._buildForm();
+  constructor() {
+    super();
+    console.log('BarProportionCardEditor - Constructor called');
+    this._config = {};
   }
 
   setConfig(config) {
-    console.log('Editor setConfig called', config);
+    console.log('BarProportionCardEditor - setConfig called', config);
     this._config = config;
     this._buildForm();
-  }
-
-  firstUpdated() {
-    console.log('Editor firstUpdated called');
-    this._buildForm();
-  }
-
-  _buildForm() {
-    console.log('Editor _buildForm called');
-    if (!this._config) {
-      console.log('No config yet');
-      return;
-    }
-  }
-  static styles = `
-    .form-container {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .row {
-      padding: 8px 0;
-      display: flex;
-      flex-direction: column;
-    }
-    .entities {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .entity-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    .entity-row ha-icon {
-      cursor: pointer;
-      color: var(--primary-text-color);
-    }
-    mwc-button {
-      margin-top: 8px;
-    }
-    ha-textfield {
-      width: 100%;
-    }
-  `;
-
-  get hass() {
-    return this._hass;
   }
 
   get _title() {
@@ -85,6 +65,12 @@ class BarProportionCardEditor extends HTMLElement {
   get _unit() {
     return this._config.unit || '';
   }
+
+  _buildForm() {
+    console.log('BarProportionCardEditor - Building form');
+    if (this.shadowRoot) {
+      this.shadowRoot.lastChild?.remove();
+    }
 
     const helper = document.createElement('div');
     helper.innerHTML = `
@@ -142,11 +128,20 @@ class BarProportionCardEditor extends HTMLElement {
       </div>
     `;
 
-    const root = this.attachShadow({ mode: 'open' });
+    const root = this.shadowRoot || this.attachShadow({ mode: 'open' });
+    root.appendChild(helper.children[0]);
     root.appendChild(helper.children[0]);
     this._initializeElements();
   }
 
+  connectedCallback() {
+    console.log('BarProportionCardEditor - Connected to DOM');
+    if (!this.shadowRoot) {
+      this._buildForm();
+    }
+  }
+
+  // Le reste des méthodes reste identique
   _initializeElements() {
     this._entities.forEach((entity, index) => {
       const entitySelect = this.shadowRoot.querySelector(`#entity-${index}`);
@@ -165,7 +160,7 @@ class BarProportionCardEditor extends HTMLElement {
           id="entity-${index}"
           .value="${entity.entity}"
           .label="Entité ${index + 1}"
-          .hass="${this._hass}"
+          .hass="${this.hass}"
           allow-custom-entity
         ></ha-entity-picker>
         <ha-textfield
@@ -206,28 +201,19 @@ class BarProportionCardEditor extends HTMLElement {
 
   _entityChanged(index, value) {
     const entities = [...this._entities];
-    entities[index] = {
-      ...entities[index],
-      entity: value
-    };
+    entities[index] = { ...entities[index], entity: value };
     this._updateConfig({ entities });
   }
 
   _nameChanged(index, ev) {
     const entities = [...this._entities];
-    entities[index] = {
-      ...entities[index],
-      name: ev.target.value
-    };
+    entities[index] = { ...entities[index], name: ev.target.value };
     this._updateConfig({ entities });
   }
 
   _colorChanged(index, ev) {
     const entities = [...this._entities];
-    entities[index] = {
-      ...entities[index],
-      color: ev.target.value
-    };
+    entities[index] = { ...entities[index], color: ev.target.value };
     this._updateConfig({ entities });
   }
 
@@ -237,16 +223,11 @@ class BarProportionCardEditor extends HTMLElement {
 
   _valueChanged(ev) {
     const target = ev.target;
-    this._updateConfig({
-      [target.id]: target.value
-    });
+    this._updateConfig({ [target.id]: target.value });
   }
 
   _updateConfig(updates) {
-    const newConfig = {
-      ...this._config,
-      ...updates
-    };
+    const newConfig = { ...this._config, ...updates };
     const event = new CustomEvent('config-changed', {
       detail: { config: newConfig }
     });
@@ -255,3 +236,5 @@ class BarProportionCardEditor extends HTMLElement {
 }
 
 customElements.define('bar-proportion-card-editor', BarProportionCardEditor);
+
+console.log('bar-proportion-editor.js loaded and registered');
