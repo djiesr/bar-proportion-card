@@ -36,14 +36,26 @@ class BarProportionCardEditor extends HTMLElement {
 
   constructor() {
     super();
-    console.log('BarProportionCardEditor - Constructor called');
-    this._config = {};
+    this.attachShadow({ mode: 'open' });
+    this._initialized = false;
   }
 
+  set hass(hass) {
+    console.log('Setting hass in editor');
+    if (this._config && !this._initialized) {
+      this._initialized = true;
+      this._buildForm();
+    }
+  }
+  
+  
   setConfig(config) {
     console.log('BarProportionCardEditor - setConfig called', config);
     this._config = config;
-    this._buildForm();
+    if (this._hass && !this._initialized) {
+      this._initialized = true;
+      this._buildForm();
+    }
   }
 
   get _title() {
@@ -153,16 +165,23 @@ class BarProportionCardEditor extends HTMLElement {
     });
   }
 
-  set hass(hass) {
-    console.log('Setting hass in editor');
-    this._hass = hass;
-    // On reconstruit le formulaire uniquement si la config existe déjà
-    if (this._config) {
-      this._buildForm();
+  async _buildForm() {
+    if (!this._hass || !this._config) return;
+
+    const helper = document.createElement('div');
+    // ... reste du code buildForm
+
+    // Vider le shadowRoot avant d'ajouter le nouveau contenu
+    while (this.shadowRoot.firstChild) {
+      this.shadowRoot.removeChild(this.shadowRoot.firstChild);
     }
+    this.shadowRoot.appendChild(helper.children[0]);
   }
   
   _createEntityRow(entity, index) {
+    // Vérifier que hass est disponible avant de créer l'entity-picker
+    if (!this._hass) return '';
+
     return `
       ${index === 0 ? `
         <div class="entity-header" style="display: flex; gap: 8px; margin-bottom: 8px; color: var(--primary-text-color);">
@@ -178,21 +197,19 @@ class BarProportionCardEditor extends HTMLElement {
           .hass="${this._hass}"
           .value="${entity.entity}"
           .label="Sélectionner une entité"
-          .includeDomains=${['sensor', 'input_number', 'number']}
           allow-custom-entity
-          .localizeFunc=${this._hass?.localize}
           style="flex-grow: 1; min-width: 200px;"
         ></ha-entity-picker>
         <ha-textfield
           .value="${entity.name || ''}"
-          .label="Nom affiché (optionnel)"
+          .label="Nom affiché"
           id="name-${index}"
           @change="${(ev) => this._nameChanged(index, ev)}"
           style="flex-grow: 1; min-width: 150px;"
         ></ha-textfield>
         <ha-textfield
           .value="${entity.color || ''}"
-          .label="Couleur (ex: #FF0000)"
+          .label="(ex: #FF0000)"
           id="color-${index}"
           @change="${(ev) => this._colorChanged(index, ev)}"
           style="min-width: 120px;"
@@ -200,7 +217,7 @@ class BarProportionCardEditor extends HTMLElement {
         <ha-icon-button
           .path="mdi:delete"
           @click="${() => this._removeEntity(index)}"
-          style="color: var(--primary-text-color);"
+          style="color: var(--primary-text-color); width: 48px;"
         ></ha-icon-button>
       </div>
     `;
