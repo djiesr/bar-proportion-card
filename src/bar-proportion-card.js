@@ -3,12 +3,21 @@ import { formatDisplay, processEntityData } from './bar-proportion-utils.js';
 import './bar-proportion-editor.js';
 
 class BarProportionCard extends HTMLElement {
-  static getConfigElement() {
-    console.log("getConfigElement called");
-    return document.createElement('bar-proportion-card-editor');
-  }
 
+  constructor() {
+    super();
+    console.log('[BarProportionCard] Constructor');
+  }
+  
+  static getConfigElement() {
+    console.log('[BarProportionCard] getConfigElement - creating editor');
+    const editor = document.createElement('bar-proportion-card-editor');
+    console.log('[BarProportionCard] getConfigElement - editor created:', editor);
+    return editor;
+  }
+  
   static getStubConfig() {
+    console.log('[BarProportionCard] getStubConfig called');
     return {
       title: "Ma barre de proportion",
       entities: [
