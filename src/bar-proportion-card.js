@@ -4,6 +4,7 @@ import './bar-proportion-editor.js';
 
 class BarProportionCard extends HTMLElement {
   static getConfigElement() {
+    console.log("getConfigElement called");
     return document.createElement('bar-proportion-card-editor');
   }
 
