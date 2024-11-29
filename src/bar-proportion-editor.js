@@ -67,7 +67,7 @@ class BarProportionCardEditor extends HTMLElement {
   }
 
   _buildForm() {
-    console.log('BarProportionCardEditor - Building form');
+    console.log('Building form with hass:', this._hass);
     if (this.shadowRoot) {
       this.shadowRoot.lastChild?.remove();
     }
@@ -158,27 +158,32 @@ class BarProportionCardEditor extends HTMLElement {
       <div class="entity-row">
         <ha-entity-picker
           id="entity-${index}"
+          .hass="${this._hass}"
           .value="${entity.entity}"
-          .label="Entité ${index + 1}"
-          .hass="${this.hass}"
+          .label="Sélectionner une entité"
+          .includeDomains=${['sensor', 'input_number', 'number']}
           allow-custom-entity
+          style="flex-grow: 1; min-width: 200px;"
         ></ha-entity-picker>
         <ha-textfield
           .value="${entity.name || ''}"
-          .label="Nom"
+          .label="Nom affiché (optionnel)"
           id="name-${index}"
           @change="${(ev) => this._nameChanged(index, ev)}"
+          style="flex-grow: 1; min-width: 150px;"
         ></ha-textfield>
         <ha-textfield
           .value="${entity.color || ''}"
-          .label="Couleur"
+          .label="Couleur (ex: #FF0000)"
           id="color-${index}"
           @change="${(ev) => this._colorChanged(index, ev)}"
+          style="min-width: 120px;"
         ></ha-textfield>
-        <ha-icon
-          icon="mdi:delete"
+        <ha-icon-button
+          .path="mdi:delete"
           @click="${() => this._removeEntity(index)}"
-        ></ha-icon>
+          style="color: var(--primary-text-color);"
+        ></ha-icon-button>
       </div>
     `;
   }
@@ -232,6 +237,14 @@ class BarProportionCardEditor extends HTMLElement {
       detail: { config: newConfig }
     });
     this.dispatchEvent(event);
+  }
+  set hass(hass) {
+    console.log('Setting hass in editor');
+    this._hass = hass;
+    // On reconstruit le formulaire uniquement si la config existe déjà
+    if (this._config) {
+      this._buildForm();
+    }
   }
 }
 
