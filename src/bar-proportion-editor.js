@@ -21,9 +21,26 @@ class BarProportionCardEditor extends HTMLElement {
     `;
   }
 
-  setConfig(config) {
-    this._config = config;
-    this.render();
+  static getStubConfig() {
+    return {
+      title: "Ma barre de proportion",
+      entities: [
+        {
+          entity: "",
+          name: "",
+          color: "var(--primary-color)"
+        }
+      ],
+      display_mode: "percentage",
+      decimals: 0,
+      unit: ""
+    };
+  }
+
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this._config = BarProportionCardEditor.getStubConfig();
   }
 
   set hass(hass) {
@@ -31,12 +48,13 @@ class BarProportionCardEditor extends HTMLElement {
     this.render();
   }
 
-  render() {
-    if (!this._config || !this._hass) return;
+  setConfig(config) {
+    this._config = config;
+    this.render();
+  }
 
-    if (!this.shadowRoot) {
-      this.attachShadow({ mode: 'open' });
-    }
+  render() {
+    if (!this._hass) return;
 
     this.shadowRoot.innerHTML = `
       <style>${BarProportionCardEditor.styles}</style>
@@ -54,7 +72,7 @@ class BarProportionCardEditor extends HTMLElement {
           <ha-select
             label="Mode d'affichage"
             .value="${this._config.display_mode || 'percentage'}"
-            @selected="${this._valueChanged}"
+            @change="${this._valueChanged}"
             .configValue=${'display_mode'}
           >
             <mwc-list-item value="percentage">Pourcentage</mwc-list-item>
@@ -87,10 +105,11 @@ class BarProportionCardEditor extends HTMLElement {
           ${(this._config.entities || []).map((entity, index) => `
             <div class="entity-row">
               <ha-entity-picker
-                .hass=${this._hass}
+                .hass="${this._hass}"
                 .value="${entity.entity || ''}"
                 .index="${index}"
                 @value-changed="${this._entityChanged}"
+                allow-custom-entity
               ></ha-entity-picker>
               <ha-textfield
                 .value="${entity.name || ''}"
@@ -121,55 +140,80 @@ class BarProportionCardEditor extends HTMLElement {
         </div>
       </div>
     `;
+
+    // Important: update all entity pickers with hass after render
+    this.shadowRoot.querySelectorAll('ha-entity-picker').forEach(picker => {
+      picker.hass = this._hass;
+    });
   }
 
   _valueChanged(ev) {
     if (!this._config || !this.shadowRoot) return;
 
     const target = ev.target;
-    const value = target.value;
+    const value = target.type === 'number' ? Number(target.value) : target.value;
     const configValue = target.configValue;
 
     if (configValue) {
-      if (target.type === 'number') {
-        this._config = { ...this._config, [configValue]: parseInt(value) };
-      } else {
-        this._config = { ...this._config, [configValue]: value };
-      }
+      this._config = {
+        ...this._config,
+        [configValue]: value
+      };
+      this._fireChanged();
     }
-    this._fireChanged();
   }
 
   _entityChanged(ev) {
-    const target = ev.target;
-    const index = parseInt(target.index);
-    const value = ev.detail.value;
-
+    if (!ev.target.index) return;
+    const index = parseInt(ev.target.index);
     const entities = [...(this._config.entities || [])];
-    entities[index] = { ...entities[index], entity: value };
-    this._config = { ...this._config, entities };
+    
+    entities[index] = {
+      ...entities[index],
+      entity: ev.detail.value
+    };
+    
+    this._config = {
+      ...this._config,
+      entities
+    };
+    
     this._fireChanged();
   }
 
   _nameChanged(ev) {
-    const target = ev.target;
-    const index = parseInt(target.index);
-    const value = target.value;
-
+    if (!ev.target.index) return;
+    const index = parseInt(ev.target.index);
     const entities = [...(this._config.entities || [])];
-    entities[index] = { ...entities[index], name: value };
-    this._config = { ...this._config, entities };
+    
+    entities[index] = {
+      ...entities[index],
+      name: ev.target.value
+    };
+    
+    this._config = {
+      ...this._config,
+      entities
+    };
+    
     this._fireChanged();
   }
 
   _colorChanged(ev) {
-    const target = ev.target;
-    const index = parseInt(target.index);
-    const value = target.value;
-
+    if (!ev.target.index) return;
+    const index = parseInt(ev.target.index);
     const entities = [...(this._config.entities || [])];
-    entities[index] = { ...entities[index], color: value };
-    this._config = { ...this._config, entities };
+    
+    entities[index] = {
+      ...entities[index],
+      color: ev.target.value
+    };
+    
+    this._config = {
+      ...this._config,
+      entities
+    };
+    
     this._fireChanged();
   }
 
@@ -180,15 +224,25 @@ class BarProportionCardEditor extends HTMLElement {
       name: '',
       color: ''
     });
-    this._config = { ...this._config, entities };
+    
+    this._config = {
+      ...this._config,
+      entities
+    };
+    
     this._fireChanged();
   }
 
   _removeEntity(ev) {
-    const index = parseInt(ev.target.index);
+    const index = parseInt(ev.currentTarget.index);
     const entities = [...(this._config.entities || [])];
     entities.splice(index, 1);
-    this._config = { ...this._config, entities };
+    
+    this._config = {
+      ...this._config,
+      entities
+    };
+    
     this._fireChanged();
   }
 
@@ -202,4 +256,4 @@ class BarProportionCardEditor extends HTMLElement {
   }
 }
 
-customElements.define('bar-proportion-card-editor', BarProportionCardEditor);
+customElements.define('bar-proportion-
