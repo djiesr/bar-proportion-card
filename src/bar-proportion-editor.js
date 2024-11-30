@@ -21,229 +21,202 @@ class BarProportionCardEditor extends HTMLElement {
     `;
   }
 
-  static getStubConfig() {
-    return {
-      title: "Ma barre de proportion",
-      entities: [
-        {
-          entity: "",
-          name: "",
-          color: "var(--primary-color)"
-        }
-      ],
-      display_mode: "percentage",
-      decimals: 0,
-      unit: ""
-    };
-  }
-
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
-    this._config = BarProportionCardEditor.getStubConfig();
+    this._initialized = false;
+  }
+
+  firstUpdated() {
+    this._initialized = true;
+    this._createForm();
   }
 
   set hass(hass) {
     this._hass = hass;
-    this.render();
+    if (!this._initialized) {
+      this.firstUpdated();
+    }
   }
 
   setConfig(config) {
     this._config = config;
-    this.render();
-  }
-
-  render() {
-    if (!this._hass) return;
-
-    this.shadowRoot.innerHTML = `
-      <style>${BarProportionCardEditor.styles}</style>
-      <div class="card-config">
-        <div class="row">
-          <ha-textfield
-            label="Titre"
-            .value="${this._config.title || ''}"
-            @change="${this._valueChanged}"
-            .configValue=${'title'}
-          ></ha-textfield>
-        </div>
-
-        <div class="row">
-          <ha-select
-            label="Mode d'affichage"
-            .value="${this._config.display_mode || 'percentage'}"
-            @change="${this._valueChanged}"
-            .configValue=${'display_mode'}
-          >
-            <mwc-list-item value="percentage">Pourcentage</mwc-list-item>
-            <mwc-list-item value="value">Valeur</mwc-list-item>
-          </ha-select>
-        </div>
-
-        <div class="row">
-          <ha-textfield
-            label="Décimales"
-            type="number"
-            min="0"
-            max="5"
-            .value="${this._config.decimals || 0}"
-            @change="${this._valueChanged}"
-            .configValue=${'decimals'}
-          ></ha-textfield>
-        </div>
-
-        <div class="row">
-          <ha-textfield
-            label="Unité"
-            .value="${this._config.unit || ''}"
-            @change="${this._valueChanged}"
-            .configValue=${'unit'}
-          ></ha-textfield>
-        </div>
-
-        <div class="entities">
-          ${(this._config.entities || []).map((entity, index) => `
-            <div class="entity-row">
-              <ha-entity-picker
-                .hass="${this._hass}"
-                .value="${entity.entity || ''}"
-                .index="${index}"
-                @value-changed="${this._entityChanged}"
-                allow-custom-entity
-              ></ha-entity-picker>
-              <ha-textfield
-                .value="${entity.name || ''}"
-                .index="${index}"
-                @change="${this._nameChanged}"
-                label="Nom"
-              ></ha-textfield>
-              <ha-textfield
-                .value="${entity.color || ''}"
-                .index="${index}"
-                @change="${this._colorChanged}"
-                label="Couleur"
-              ></ha-textfield>
-              <ha-icon-button
-                .index="${index}"
-                @click="${this._removeEntity}"
-              >
-                <ha-icon icon="mdi:delete"></ha-icon>
-              </ha-icon-button>
-            </div>
-          `).join('')}
-        </div>
-        
-        <div class="row">
-          <mwc-button @click="${this._addEntity}">
-            Ajouter une entité
-          </mwc-button>
-        </div>
-      </div>
-    `;
-
-    // Important: update all entity pickers with hass after render
-    this.shadowRoot.querySelectorAll('ha-entity-picker').forEach(picker => {
-      picker.hass = this._hass;
-    });
-  }
-
-  _valueChanged(ev) {
-    if (!this._config || !this.shadowRoot) return;
-
-    const target = ev.target;
-    const value = target.type === 'number' ? Number(target.value) : target.value;
-    const configValue = target.configValue;
-
-    if (configValue) {
-      this._config = {
-        ...this._config,
-        [configValue]: value
-      };
-      this._fireChanged();
+    if (!this._initialized) {
+      this.firstUpdated();
     }
   }
 
-  _entityChanged(ev) {
-    if (!ev.target.index) return;
-    const index = parseInt(ev.target.index);
-    const entities = [...(this._config.entities || [])];
+  _createForm() {
+    if (!this._hass || !this._config) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'card-config';
+
+    const style = document.createElement('style');
+    style.textContent = BarProportionCardEditor.styles;
+    wrapper.appendChild(style);
+
+    // Titre
+    const titleRow = this._createRow();
+    const titleField = document.createElement('ha-textfield');
+    titleField.label = "Titre";
+    titleField.value = this._config.title || '';
+    titleField.addEventListener('change', (ev) => this._valueChanged('title', ev.target.value));
+    titleRow.appendChild(titleField);
+    wrapper.appendChild(titleRow);
+
+    // Mode d'affichage
+    const displayRow = this._createRow();
+    const displaySelect = document.createElement('ha-select');
+    displaySelect.label = "Mode d'affichage";
+    displaySelect.value = this._config.display_mode || 'percentage';
+    const options = [
+      ['percentage', 'Pourcentage'],
+      ['value', 'Valeur']
+    ];
+    options.forEach(([value, label]) => {
+      const item = document.createElement('mwc-list-item');
+      item.value = value;
+      item.innerText = label;
+      displaySelect.appendChild(item);
+    });
+    displaySelect.addEventListener('selected', (ev) => this._valueChanged('display_mode', ev.target.value));
+    displayRow.appendChild(displaySelect);
+    wrapper.appendChild(displayRow);
+
+    // Décimales
+    const decimalsRow = this._createRow();
+    const decimalsField = document.createElement('ha-textfield');
+    decimalsField.label = "Décimales";
+    decimalsField.type = "number";
+    decimalsField.min = "0";
+    decimalsField.max = "5";
+    decimalsField.value = this._config.decimals || 0;
+    decimalsField.addEventListener('change', (ev) => this._valueChanged('decimals', parseInt(ev.target.value)));
+    decimalsRow.appendChild(decimalsField);
+    wrapper.appendChild(decimalsRow);
+
+    // Unité
+    const unitRow = this._createRow();
+    const unitField = document.createElement('ha-textfield');
+    unitField.label = "Unité";
+    unitField.value = this._config.unit || '';
+    unitField.addEventListener('change', (ev) => this._valueChanged('unit', ev.target.value));
+    unitRow.appendChild(unitField);
+    wrapper.appendChild(unitRow);
+
+    // Entités
+    const entitiesContainer = document.createElement('div');
+    entitiesContainer.className = 'entities';
     
-    entities[index] = {
-      ...entities[index],
-      entity: ev.detail.value
-    };
+    const addEntityBtn = document.createElement('mwc-button');
+    addEntityBtn.innerHTML = 'Ajouter une entité';
+    addEntityBtn.addEventListener('click', () => this._addEntity());
+
+    this._createEntityRows(entitiesContainer);
     
+    wrapper.appendChild(entitiesContainer);
+    wrapper.appendChild(addEntityBtn);
+
+    // Remplacer tout le contenu
+    while (this.shadowRoot.firstChild) {
+      this.shadowRoot.removeChild(this.shadowRoot.firstChild);
+    }
+    this.shadowRoot.appendChild(wrapper);
+  }
+
+  _createRow() {
+    const row = document.createElement('div');
+    row.className = 'row';
+    return row;
+  }
+
+  _createEntityRows(container) {
+    container.innerHTML = '';
+    (this._config.entities || []).forEach((entity, index) => {
+      const row = document.createElement('div');
+      row.className = 'entity-row';
+
+      // Entity Picker
+      const entityPicker = document.createElement('ha-entity-picker');
+      entityPicker.hass = this._hass;
+      entityPicker.value = entity.entity;
+      entityPicker.allowCustomEntity = true;
+      entityPicker.index = index;
+      entityPicker.addEventListener('value-changed', (ev) => {
+        this._entityChanged(index, ev.detail.value);
+      });
+
+      // Name Field
+      const nameField = document.createElement('ha-textfield');
+      nameField.label = "Nom";
+      nameField.value = entity.name || '';
+      nameField.addEventListener('change', (ev) => {
+        this._nameChanged(index, ev.target.value);
+      });
+
+      // Color Field
+      const colorField = document.createElement('ha-textfield');
+      colorField.label = "Couleur";
+      colorField.value = entity.color || '';
+      colorField.addEventListener('change', (ev) => {
+        this._colorChanged(index, ev.target.value);
+      });
+
+      // Delete Button
+      const deleteBtn = document.createElement('ha-icon-button');
+      deleteBtn.innerHTML = '<ha-icon icon="mdi:delete"></ha-icon>';
+      deleteBtn.addEventListener('click', () => {
+        this._removeEntity(index);
+      });
+
+      row.appendChild(entityPicker);
+      row.appendChild(nameField);
+      row.appendChild(colorField);
+      row.appendChild(deleteBtn);
+      container.appendChild(row);
+    });
+  }
+
+  _valueChanged(field, value) {
+    if (!this._config) return;
     this._config = {
       ...this._config,
-      entities
+      [field]: value
     };
-    
     this._fireChanged();
   }
 
-  _nameChanged(ev) {
-    if (!ev.target.index) return;
-    const index = parseInt(ev.target.index);
+  _entityChanged(index, value) {
     const entities = [...(this._config.entities || [])];
-    
-    entities[index] = {
-      ...entities[index],
-      name: ev.target.value
-    };
-    
-    this._config = {
-      ...this._config,
-      entities
-    };
-    
-    this._fireChanged();
+    entities[index] = { ...entities[index], entity: value };
+    this._valueChanged('entities', entities);
   }
 
-  _colorChanged(ev) {
-    if (!ev.target.index) return;
-    const index = parseInt(ev.target.index);
+  _nameChanged(index, value) {
     const entities = [...(this._config.entities || [])];
-    
-    entities[index] = {
-      ...entities[index],
-      color: ev.target.value
-    };
-    
-    this._config = {
-      ...this._config,
-      entities
-    };
-    
-    this._fireChanged();
+    entities[index] = { ...entities[index], name: value };
+    this._valueChanged('entities', entities);
+  }
+
+  _colorChanged(index, value) {
+    const entities = [...(this._config.entities || [])];
+    entities[index] = { ...entities[index], color: value };
+    this._valueChanged('entities', entities);
   }
 
   _addEntity() {
     const entities = [...(this._config.entities || [])];
-    entities.push({
-      entity: '',
-      name: '',
-      color: ''
-    });
-    
-    this._config = {
-      ...this._config,
-      entities
-    };
-    
-    this._fireChanged();
+    entities.push({ entity: '', name: '', color: '' });
+    this._valueChanged('entities', entities);
+    this._createEntityRows(this.shadowRoot.querySelector('.entities'));
   }
 
-  _removeEntity(ev) {
-    const index = parseInt(ev.currentTarget.index);
+  _removeEntity(index) {
     const entities = [...(this._config.entities || [])];
     entities.splice(index, 1);
-    
-    this._config = {
-      ...this._config,
-      entities
-    };
-    
-    this._fireChanged();
+    this._valueChanged('entities', entities);
+    this._createEntityRows(this.shadowRoot.querySelector('.entities'));
   }
 
   _fireChanged() {
@@ -256,4 +229,4 @@ class BarProportionCardEditor extends HTMLElement {
   }
 }
 
-customElements.define('bar-proportion-
+customElements.define('bar-proportion-card-editor', BarProportionCardEditor);
