@@ -41,13 +41,13 @@ class BarProportionCardEditor extends HTMLElement {
   }
 
   set hass(hass) {
+    this._hass = hass; // Ajout de cette ligne
     console.log('Setting hass in editor');
     if (this._config && !this._initialized) {
       this._initialized = true;
       this._buildForm();
     }
   }
-  
   
   setConfig(config) {
     console.log('BarProportionCardEditor - setConfig called', config);
@@ -59,29 +59,32 @@ class BarProportionCardEditor extends HTMLElement {
   }
 
   get _title() {
-    return this._config.title || '';
+    return this._config?.title || '';
   }
 
   get _entities() {
-    return this._config.entities || [];
+    return this._config?.entities || [];
   }
 
   get _display_mode() {
-    return this._config.display_mode || 'percentage';
+    return this._config?.display_mode || 'percentage';
   }
 
   get _decimals() {
-    return this._config.decimals || 0;
+    return this._config?.decimals || 0;
   }
 
   get _unit() {
-    return this._config.unit || '';
+    return this._config?.unit || '';
   }
 
   _buildForm() {
     console.log('Building form with hass:', this._hass);
-    if (this.shadowRoot) {
-      this.shadowRoot.lastChild?.remove();
+    if (!this._hass || !this._config) return;
+
+    // Vider le shadowRoot avant d'ajouter le nouveau contenu
+    while (this.shadowRoot.firstChild) {
+      this.shadowRoot.removeChild(this.shadowRoot.firstChild);
     }
 
     const helper = document.createElement('div');
@@ -92,7 +95,7 @@ class BarProportionCardEditor extends HTMLElement {
           <ha-textfield
             label="Titre"
             .value="${this._title}"
-            @change="${this._valueChanged}"
+            @input="${this._valueChanged}"
             id="title"
           ></ha-textfield>
         </div>
@@ -116,7 +119,7 @@ class BarProportionCardEditor extends HTMLElement {
             min="0"
             max="5"
             .value="${this._decimals}"
-            @change="${this._valueChanged}"
+            @input="${this._valueChanged}"
             id="decimals"
           ></ha-textfield>
         </div>
@@ -125,7 +128,7 @@ class BarProportionCardEditor extends HTMLElement {
           <ha-textfield
             label="Unité"
             .value="${this._unit}"
-            @change="${this._valueChanged}"
+            @input="${this._valueChanged}"
             id="unit"
           ></ha-textfield>
         </div>
@@ -140,46 +143,11 @@ class BarProportionCardEditor extends HTMLElement {
       </div>
     `;
 
-    const root = this.shadowRoot || this.attachShadow({ mode: 'open' });
-    root.appendChild(helper.children[0]);
-    root.appendChild(helper.children[0]);
+    this.shadowRoot.appendChild(helper.firstElementChild);
     this._initializeElements();
   }
 
-  connectedCallback() {
-    console.log('BarProportionCardEditor - Connected to DOM');
-    if (!this.shadowRoot) {
-      this._buildForm();
-    }
-  }
-
-  // Le reste des méthodes reste identique
-  _initializeElements() {
-    this._entities.forEach((entity, index) => {
-      const entitySelect = this.shadowRoot.querySelector(`#entity-${index}`);
-      if (entitySelect) {
-        entitySelect.addEventListener('value-changed', (ev) => {
-          this._entityChanged(index, ev.detail.value);
-        });
-      }
-    });
-  }
-
-  async _buildForm() {
-    if (!this._hass || !this._config) return;
-
-    const helper = document.createElement('div');
-    // ... reste du code buildForm
-
-    // Vider le shadowRoot avant d'ajouter le nouveau contenu
-    while (this.shadowRoot.firstChild) {
-      this.shadowRoot.removeChild(this.shadowRoot.firstChild);
-    }
-    this.shadowRoot.appendChild(helper.children[0]);
-  }
-  
   _createEntityRow(entity, index) {
-    // Vérifier que hass est disponible avant de créer l'entity-picker
     if (!this._hass) return '';
 
     return `
@@ -196,31 +164,59 @@ class BarProportionCardEditor extends HTMLElement {
           id="entity-${index}"
           .hass="${this._hass}"
           .value="${entity.entity}"
-          .label="Sélectionner une entité"
+          label="Sélectionner une entité"
           allow-custom-entity
+          @value-changed="${(ev) => this._entityChanged(index, ev)}"
           style="flex-grow: 1; min-width: 200px;"
         ></ha-entity-picker>
         <ha-textfield
           .value="${entity.name || ''}"
-          .label="Nom affiché"
+          label="Nom affiché"
           id="name-${index}"
-          @change="${(ev) => this._nameChanged(index, ev)}"
+          @input="${(ev) => this._nameChanged(index, ev)}"
           style="flex-grow: 1; min-width: 150px;"
         ></ha-textfield>
         <ha-textfield
           .value="${entity.color || ''}"
-          .label="(ex: #FF0000)"
+          label="(ex: #FF0000)"
           id="color-${index}"
-          @change="${(ev) => this._colorChanged(index, ev)}"
+          @input="${(ev) => this._colorChanged(index, ev)}"
           style="min-width: 120px;"
         ></ha-textfield>
         <ha-icon-button
-          .path="mdi:delete"
+          .path="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"
           @click="${() => this._removeEntity(index)}"
           style="color: var(--primary-text-color); width: 48px;"
         ></ha-icon-button>
       </div>
     `;
+  }
+
+  _initializeElements() {
+    this._entities.forEach((entity, index) => {
+      const entityPicker = this.shadowRoot.querySelector(`#entity-${index}`);
+      if (entityPicker) {
+        entityPicker.hass = this._hass;
+      }
+    });
+  }
+
+  _entityChanged(index, ev) {
+    const entities = [...this._entities];
+    entities[index] = { ...entities[index], entity: ev.detail.value };
+    this._updateConfig({ entities });
+  }
+
+  _nameChanged(index, ev) {
+    const entities = [...this._entities];
+    entities[index] = { ...entities[index], name: ev.target.value };
+    this._updateConfig({ entities });
+  }
+
+  _colorChanged(index, ev) {
+    const entities = [...this._entities];
+    entities[index] = { ...entities[index], color: ev.target.value };
+    this._updateConfig({ entities });
   }
 
   _addEntity() {
@@ -239,39 +235,26 @@ class BarProportionCardEditor extends HTMLElement {
     this._updateConfig({ entities });
   }
 
-  _entityChanged(index, value) {
-    const entities = [...this._entities];
-    entities[index] = { ...entities[index], entity: value };
-    this._updateConfig({ entities });
-  }
-
-  _nameChanged(index, ev) {
-    const entities = [...this._entities];
-    entities[index] = { ...entities[index], name: ev.target.value };
-    this._updateConfig({ entities });
-  }
-
-  _colorChanged(index, ev) {
-    const entities = [...this._entities];
-    entities[index] = { ...entities[index], color: ev.target.value };
-    this._updateConfig({ entities });
-  }
-
   _displayModeChanged(ev) {
     this._updateConfig({ display_mode: ev.target.value });
   }
 
   _valueChanged(ev) {
     const target = ev.target;
-    this._updateConfig({ [target.id]: target.value });
+    const value = target.type === 'number' ? Number(target.value) : target.value;
+    this._updateConfig({ [target.id]: value });
   }
 
   _updateConfig(updates) {
     const newConfig = { ...this._config, ...updates };
+    this._config = newConfig; // Mise à jour de la configuration locale
     const event = new CustomEvent('config-changed', {
-      detail: { config: newConfig }
+      detail: { config: newConfig },
+      bubbles: true,
+      composed: true
     });
     this.dispatchEvent(event);
+    this._buildForm(); // Reconstruction du formulaire pour refléter les changements
   }
 }
 
