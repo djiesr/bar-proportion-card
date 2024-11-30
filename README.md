@@ -12,7 +12,7 @@ Une carte personnalisée pour Home Assistant qui affiche des proportions sous fo
 3. Cliquer sur les 3 points en haut à droite
 4. Sélectionner "Custom repositories"
 5. Ajouter l'URL de ce repo
-6. Sélectionner "Lovelace" comme catégorie
+6. Sélectionner "Dashboad" comme catégorie
 
 ### Manuel
 1. Télécharger `bar-proportion-card.js`
