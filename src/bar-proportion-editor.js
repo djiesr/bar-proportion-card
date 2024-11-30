@@ -5,6 +5,7 @@ class BarProportionCardEditor extends HTMLElement {
         display: flex;
         flex-direction: column;
         gap: 8px;
+        padding: 16px;
       }
       .row {
         padding: 8px 0;
@@ -41,21 +42,22 @@ class BarProportionCardEditor extends HTMLElement {
   }
 
   set hass(hass) {
-    this._hass = hass; // Ajout de cette ligne
-    console.log('Setting hass in editor');
+    this._hass = hass;
     if (this._config && !this._initialized) {
-      this._initialized = true;
-      this._buildForm();
+      this._initialize();
     }
   }
   
   setConfig(config) {
-    console.log('BarProportionCardEditor - setConfig called', config);
     this._config = config;
     if (this._hass && !this._initialized) {
-      this._initialized = true;
-      this._buildForm();
+      this._initialize();
     }
+  }
+
+  _initialize() {
+    this._initialized = true;
+    this._createForm();
   }
 
   get _title() {
@@ -78,73 +80,77 @@ class BarProportionCardEditor extends HTMLElement {
     return this._config?.unit || '';
   }
 
-  _buildForm() {
-    console.log('Building form with hass:', this._hass);
+  _createForm() {
     if (!this._hass || !this._config) return;
 
-    // Vider le shadowRoot avant d'ajouter le nouveau contenu
-    while (this.shadowRoot.firstChild) {
-      this.shadowRoot.removeChild(this.shadowRoot.firstChild);
-    }
-
-    const helper = document.createElement('div');
-    helper.innerHTML = `
+    const content = document.createElement('div');
+    content.className = 'form-container';
+    content.innerHTML = `
       <style>${BarProportionCardEditor.styles}</style>
-      <div class="form-container">
-        <div class="row">
-          <ha-textfield
-            label="Titre"
-            .value="${this._title}"
-            @input="${this._valueChanged}"
-            id="title"
-          ></ha-textfield>
-        </div>
-        
-        <div class="row">
-          <ha-select
-            label="Mode d'affichage"
-            .value="${this._display_mode}"
-            @selected="${this._displayModeChanged}"
-            id="display_mode"
-          >
-            <mwc-list-item value="percentage">Pourcentage</mwc-list-item>
-            <mwc-list-item value="value">Valeur</mwc-list-item>
-          </ha-select>
-        </div>
+      <div class="row">
+        <ha-textfield
+          label="Titre"
+          .value="${this._title}"
+          @change="${this._valueChanged}"
+          id="title"
+        ></ha-textfield>
+      </div>
+      
+      <div class="row">
+        <ha-select
+          label="Mode d'affichage"
+          .value="${this._display_mode}"
+          @selected="${this._displayModeChanged}"
+          id="display_mode"
+        >
+          <mwc-list-item value="percentage">Pourcentage</mwc-list-item>
+          <mwc-list-item value="value">Valeur</mwc-list-item>
+        </ha-select>
+      </div>
 
-        <div class="row">
-          <ha-textfield
-            label="Décimales"
-            type="number"
-            min="0"
-            max="5"
-            .value="${this._decimals}"
-            @input="${this._valueChanged}"
-            id="decimals"
-          ></ha-textfield>
-        </div>
+      <div class="row">
+        <ha-textfield
+          label="Décimales"
+          type="number"
+          min="0"
+          max="5"
+          .value="${this._decimals}"
+          @change="${this._valueChanged}"
+          id="decimals"
+        ></ha-textfield>
+      </div>
 
-        <div class="row">
-          <ha-textfield
-            label="Unité"
-            .value="${this._unit}"
-            @input="${this._valueChanged}"
-            id="unit"
-          ></ha-textfield>
-        </div>
+      <div class="row">
+        <ha-textfield
+          label="Unité"
+          .value="${this._unit}"
+          @change="${this._valueChanged}"
+          id="unit"
+        ></ha-textfield>
+      </div>
 
-        <div class="row">
-          <label>Entités</label>
-          <div class="entities" id="entities">
-            ${this._entities.map((entity, index) => this._createEntityRow(entity, index)).join('')}
-          </div>
-          <mwc-button @click="${this._addEntity}">Ajouter une entité</mwc-button>
+      <div class="row">
+        <label>Entités</label>
+        <div class="entities" id="entities">
+          ${this._entities.map((entity, index) => this._createEntityRow(entity, index)).join('')}
         </div>
+        <mwc-button @click="${this._addEntity}">Ajouter une entité</mwc-button>
       </div>
     `;
 
-    this.shadowRoot.appendChild(helper.firstElementChild);
-    this._initializeElements();
+    // Clear shadow root and append new content
+    while (this.shadowRoot.firstChild) {
+      this.shadowRoot.removeChild(this.shadowRoot.firstChild);
+    }
+    this.shadowRoot.appendChild(content);
+
+    // Initialize entity pickers
+    this._entities.forEach((_, index) => {
+      const entityPicker = this.shadowRoot.querySelector(`#entity-${index}`);
+      if (entityPicker) {
+        entityPicker.hass = this._hass;
+      }
+    });
   }
 
   _createEntityRow(entity, index) {
@@ -172,15 +178,13 @@ class BarProportionCardEditor extends HTMLElement {
         <ha-textfield
           .value="${entity.name || ''}"
           label="Nom affiché"
-          id="name-${index}"
-          @input="${(ev) => this._nameChanged(index, ev)}"
+          @change="${(ev) => this._nameChanged(index, ev)}"
           style="flex-grow: 1; min-width: 150px;"
         ></ha-textfield>
         <ha-textfield
           .value="${entity.color || ''}"
           label="(ex: #FF0000)"
-          id="color-${index}"
-          @input="${(ev) => this._colorChanged(index, ev)}"
+          @change="${(ev) => this._colorChanged(index, ev)}"
           style="min-width: 120px;"
         ></ha-textfield>
         <ha-icon-button
@@ -190,15 +194,6 @@ class BarProportionCardEditor extends HTMLElement {
         ></ha-icon-button>
       </div>
     `;
-  }
-
-  _initializeElements() {
-    this._entities.forEach((entity, index) => {
-      const entityPicker = this.shadowRoot.querySelector(`#entity-${index}`);
-      if (entityPicker) {
-        entityPicker.hass = this._hass;
-      }
-    });
   }
 
   _entityChanged(index, ev) {
@@ -247,17 +242,15 @@ class BarProportionCardEditor extends HTMLElement {
 
   _updateConfig(updates) {
     const newConfig = { ...this._config, ...updates };
-    this._config = newConfig; // Mise à jour de la configuration locale
     const event = new CustomEvent('config-changed', {
       detail: { config: newConfig },
       bubbles: true,
       composed: true
     });
     this.dispatchEvent(event);
-    this._buildForm(); // Reconstruction du formulaire pour refléter les changements
+    this._config = newConfig;
+    this._createForm();
   }
 }
 
 customElements.define('bar-proportion-card-editor', BarProportionCardEditor);
-
-console.log('bar-proportion-editor.js loaded and registered');
